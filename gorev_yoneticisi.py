@@ -6,10 +6,8 @@ GECERLI_ONCELIKLER = ("Düşük", "Normal", "Yüksek")  # Değiştirilemez (tupl
 class Gorev:
     # 1. Sınıf: Tek bir görevin özelliklerini (attribute) ve durum metotlarını tutar
     def __init__(self, gorev_id, baslik, oncelik, tahmini_saat):
-        self.id = int(gorev_id)                  # int: Benzersiz görev numarası
-        self.baslik = str(baslik)                # str: Görev açıklaması
-        self.oncelik = str(oncelik)              # str: Düşük / Normal / Yüksek
-        self.tahmini_saat = float(tahmini_saat)  # float: Tahmini süre (saat)
+        self.id, self.baslik = int(gorev_id), str(baslik)
+        self.oncelik, self.tahmini_saat = str(oncelik), float(tahmini_saat)
         self.tamamlandi = False                  # bool: Görevin tamamlanma durumu
 
     def durum_degistir(self, yeni_baslik=""):

@@ -7,7 +7,7 @@
 ---
 
 ## 1. Proje Tanıtımı
-Bu proje, Python 1. Hafta temelleriyle geliştirilmiş nesne yönelimli bir **Görev Yönetim (To-Do List) Uygulamasıdır**.
+Bu proje, **Uludağ Üniversitesi Yapay Zeka Topluluğu — TALOS Otonom Araç Takımı** alt ekiplerinin (Görü, LiDAR, Lokalizasyon, Planlama ve Kontrol, Altyapı) haftalık görevlerini takip etmek amacıyla Python 1. Hafta temelleriyle geliştirilmiş nesne yönelimli bir **Görev Yönetim (To-Do List) Uygulamasıdır**.
 
 ### Teknik Gereksinim Karşılama Özeti
 - **En az 2 Sınıf (`class`):** `Gorev` ve `GorevYoneticisi` sınıfları (`__init__` kurucu metotları, nesne nitelikleri ve sınıf metotları ile).
@@ -38,10 +38,10 @@ flowchart TD
     OutList --> MenuInput
 
     CheckOne -- "HAYIR" --> CheckTwo{"KARAR:<br/>Seçim == '2' mi?"}
-    CheckTwo -- "EVET" --> InAdd[/"GİRİŞ: Başlık, Öncelik ve Süre Bilgilerini Al"/]
+    CheckTwo -- "EVET" --> InAdd[/"GİRİŞ: Başlık, Ekip, Öncelik ve Süre Bilgilerini Al"/]
     InAdd --> Validate{"KARAR: girdi_dogrula()<br/>Veriler Geçerli mi?"}
     Validate -- "HAYIR" --> OutErr[/"ÇIKIŞ: Hata Mesajını Döndür ve Yazdır"/]
-    Validate -- "EVET" --> ProcAdd["İŞLEM: gorev_ekle()<br/>Yeni Gorev nesnesi üret, listeye ve öncelik kümesine (set) ekle"]
+    Validate -- "EVET" --> ProcAdd["İŞLEM: gorev_ekle()<br/>Yeni Gorev nesnesi üret, listeye ve ekip kümesine (set) ekle"]
     ProcAdd --> OutAdd[/"ÇIKIŞ: Ekleme Onay Mesajını Yazdır"/]
     OutErr --> MenuInput
     OutAdd --> MenuInput
@@ -78,7 +78,7 @@ flowchart TD
    ├─► [1: Listele] ──► [ İŞLEM: İstatistik Hesapla & Listeyi Gez ] ─┤
    │                    [/ ÇIKIŞ: Görevleri ve Özeti Yazdır /] ──────┤
    │                                                                 │
-   ├─► [2: Ekle] ──► [/ GİRİŞ: Başlık, Öncelik, Süre Al /]           │
+   ├─► [2: Ekle] ──► [/ GİRİŞ: Başlık, Ekip, Öncelik, Süre Al /]     │
    │                 ◆ KARAR: girdi_dogrula() Geçerli mi? ◆          │
    │                  ├─ EVET ─► [ İŞLEM: Gorev Nesnesi Üret & Ekle ]┤
    │                  └─ HAYIR ► [/ ÇIKIŞ: Hata Mesajı Göster /] ────┤
@@ -97,13 +97,13 @@ flowchart TD
 
 ### 3.1. Sınıflar Neden Böyle Tasarlandı?
 Projede sorumlulukların ayrılması (**Single Responsibility Principle**) amacıyla iki ayrı sınıf tasarlanmıştır:
-1. **`Gorev` Sınıfı (Veri Modeli):** Tek bir görevin ne olduğunu tanımlar. İçerisinde görevin kimliği (`id: int`), açıklaması (`baslik: str`), önceliği (`oncelik: str`), tahmini süresi (`tahmini_saat: float`) ve bitip bitmediği (`tamamlandi: bool`) niteliklerini (attributes) barındırır. `durum_degistir()` ve `bilgi_satiri()` metotlarıyla kendi durumunu yönetir.
-2. **`GorevYoneticisi` Sınıfı (Koleksiyon ve İş Mantığı):** Birden fazla `Gorev` nesnesini bir arada tutan yöneticidir. Görevleri sıralı bir listede (`self.gorevler: list`), kullanılan öncelik düzeylerini ise tekrarsız bir kümede (`self.oncelik_kumesi: set`) saklar. `gorev_bul()` metoduyla arama yapar, `istatistik_hesapla()` metoduyla toplam süre ve tamamlanma yüzdesini hesaplayıp sözlük (`dict`) olarak döndürür.
+1. **`Gorev` Sınıfı (Veri Modeli):** Tek bir görevin ne olduğunu tanımlar. İçerisinde görevin kimliği (`id: int`), açıklaması (`baslik: str`), ilgili TALOS ekibi (`ekip: str`), önceliği (`oncelik: str`), tahmini süresi (`tahmini_saat: float`) ve bitip bitmediği (`tamamlandi: bool`) niteliklerini (attributes) barındırır. `durum_degistir()` ve `bilgi_satiri()` metotlarıyla kendi durumunu yönetir.
+2. **`GorevYoneticisi` Sınıfı (Koleksiyon ve İş Mantığı):** Birden fazla `Gorev` nesnesini bir arada tutan yöneticidir. Görevleri sıralı bir listede (`self.gorevler: list`), aktif ekip isimlerini ise tekrarsız bir kümede (`self.aktif_ekipler: set`) saklar. `gorev_bul()` metoduyla arama yapar, `istatistik_hesapla()` metoduyla toplam süre ve tamamlanma yüzdesini hesaplayıp sözlük (`dict`) olarak döndürür.
 
 ### 3.2. Fonksiyonlar Hangi Amaçla Yazıldı?
 Kod tekrarını önlemek ve her işlemi bağımsız bir modül haline getirmek için **5 ayrı fonksiyon (`def`)** yazılmıştır:
 1. **`girdi_dogrula(baslik, oncelik, saat_metni)`:** Kullanıcıdan gelen ham verilerin boş olup olmadığını, önceliğin `GECERLI_ONCELIKLER` tuple'ı içinde yer alıp almadığını ve sürenin `0–100` saat arasında geçerli bir sayı olup olmadığını denetler.
-2. **`gorev_ekle(yonetici, ...)`:** Önce doğrulama fonksiyonunu çağırır; veri geçerliyse yeni bir `Gorev` nesnesi oluşturup yöneticinin listesine ve öncelik kümesine ekler.
+2. **`gorev_ekle(yonetici, ...)`:** Önce doğrulama fonksiyonunu çağırır; veri geçerliyse yeni bir `Gorev` nesnesi oluşturup yöneticinin listesine ve ekip kümesine ekler.
 3. **`gorev_guncelle(yonetici, gorev_id, yeni_baslik)`:** ID üzerinden görevi bulur, varsa durumunu (`BEKLİYOR` ↔ `TAMAMLANDI`) ve başlığını günceller.
 4. **`gorev_sil(yonetici, gorev_id)`:** ID ile aranan görevi bulup `.remove()` metoduyla listeden güvenli biçimde siler.
 5. **`gorevleri_goruntule(yonetici)`:** Tüm görevleri `for` döngüsüyle ekrana basar ve sözlük (`dict`) formatındaki istatistik özetini görüntüler.
@@ -114,13 +114,13 @@ Kod tekrarını önlemek ve her işlemi bağımsız bir modül haline getirmek i
 - **Nesne Varlık Kontrolü:** Güncelleme ve silme işlemlerinde `if hedef is None:` kontrolü yapılarak olmayan bir ID girildiğinde programın çökmesi engellenir.
 
 ### 3.4. Programın Genel İşleyişi Nedir?
-Program başlatıldığında `GorevYoneticisi` sınıfından `sistem` adında bir nesne türetilir ve test kolaylığı için 2 adet örnek görev otomatik yüklenir. Ardından `while True:` döngüsü ile kullanıcıya etkileşimli menü sunulur. Kullanıcı işlem seçtikçe ilgili fonksiyonlar nesne üzerindeki listeyi günceller ve sonuçları ekrana döndürür.
+Program başlatıldığında `GorevYoneticisi` sınıfından `sistem` adında bir nesne türetilir ve test kolaylığı için 2 adet örnek TALOS görevi otomatik yüklenir. Ardından `while True:` döngüsü ile kullanıcıya etkileşimli menü sunulur. Kullanıcı işlem seçtikçe ilgili fonksiyonlar nesne üzerindeki listeyi günceller ve sonuçları ekrana döndürür.
 
 ### 3.5. Kullanıcı Programı Açınca Hangi Adımları Takip Eder?
 1. Terminalde `python gorev_yoneticisi.py` komutunu çalıştırır.
 2. Ekrana gelen `[1]Listele [2]Ekle [3]Güncelle [4]Sil [0]Çıkış` menüsünden yapmak istediği işlemin numarasını girer.
-3. **`1` seçerse:** Mevcut görevleri ve tamamlanma yüzdesini görür.
-4. **`2` seçerse:** Sırasıyla görev başlığını, önceliği (`Düşük/Normal/Yüksek`) ve tahmini saati girerek yeni görev ekler.
+3. **`1` seçerse:** Mevcut görevleri, hangi ekiplerin aktif olduğunu ve tamamlanma yüzdesini görür.
+4. **`2` seçerse:** Sırasıyla görev başlığını, ekibi, önceliği (`Düşük/Normal/Yüksek`) ve tahmini saati girerek yeni görev ekler.
 5. **`3` veya `4` seçerse:** İşlem yapmak istediği görevin ID numarasını girerek görevi tamamlandı olarak işaretler veya siler.
 6. **`0` seçerse:** `break` komutuyla döngü sonlanır ve programdan güvenli çıkış yapılır.
 
